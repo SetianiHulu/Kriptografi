@@ -1,24 +1,55 @@
-# Tugas Pratikum 2: Kalkulator Hybrid (Versi Bisa Diulang)
+# ===============================================
+# Tugas Pratikum 2 - Kalkulator Hybrid (Versi Menu)
+# ===============================================
 
-print("=== Kalkulator Hybrid ===")
-print("Masukkan ekspresi matematika (contoh: 4+4-3 atau 5 - 3 * 4)")
-print("Ketik 'keluar' untuk mengakhiri program")
-print("=====================================\n")
+def ekspresi_tanpa_spasi():
+    print("\n=== Input Ekspresi TANPA spasi ===")
+    while True:
+        ekspresi = input("Masukkan ekspresi (atau ketik 'kembali' untuk menu): ")
+        if ekspresi.lower() == "kembali":
+            break
+        try:
+            hasil = eval(ekspresi)
+            print("Hasil Diproses:", ekspresi)
+            print("Output (Hasil):", hasil)
+            print("--------------------------------------\n")
+        except:
+            print("Ekspresi tidak valid! Ulangi lagi.\n")
 
+def ekspresi_dengan_spasi():
+    print("\n=== Input Ekspresi DENGAN spasi ===")
+    while True:
+        ekspresi = input("Masukkan ekspresi (atau ketik 'kembali' untuk menu): ")
+        if ekspresi.lower() == "kembali":
+            break
+        try:
+            hasil = eval(ekspresi)
+            print("Hasil Diproses:", ekspresi)
+            print("Output (Hasil):", hasil)
+            print("--------------------------------------\n")
+        except:
+            print("Ekspresi tidak valid! Ulangi lagi.\n")
+
+# ===============================================
+# Program Utama (Menu)
+# ===============================================
 while True:
-    # Input Ekspresi
-    ekspresi = input("Input (Ekspresi): ")
+    print("===============================================")
+    print("              KALKULATOR HYBRID                ")
+    print("===============================================")
+    print("1. Input Ekspresi TANPA spasi")
+    print("2. Input Ekspresi DENGAN spasi")
+    print("3. Keluar")
+    print("===============================================")
 
-    # Jika pengguna ingin keluar
-    if ekspresi.lower() == "keluar":
-        print("\nProgram selesai. Terima kasih!")
+    pilih = input("Pilih menu (1-3): ")
+
+    if pilih == "1":
+        ekspresi_tanpa_spasi()
+    elif pilih == "2":
+        ekspresi_dengan_spasi()
+    elif pilih == "3":
+        print("\nTerima kasih! Program selesai.")
         break
-
-    # Proses dan Output
-    try:
-        hasil = eval(ekspresi)
-        print("Hasil Diproses:", ekspresi)
-        print("Output (Hasil):", hasil)
-        print("------------------------------------\n")
-    except:
-        print("Terjadi kesalahan dalam memproses ekspresi!\n")
+    else:
+        print("Pilihan tidak valid! Masukkan angka 1–3.\n")
