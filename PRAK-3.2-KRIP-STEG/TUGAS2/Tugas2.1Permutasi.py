@@ -1,155 +1,130 @@
+import itertools
 import tkinter as tk
-from tkinter import messagebox, simpledialog, filedialog
-from PIL import Image
+from tkinter import messagebox, simpledialog, scrolledtext
 
-# === FUNGSI ENKRIPSI / DEKRIPSI ===
-def buat_peta_permutasi(permutasi):
-    alfabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    permutasi = permutasi.upper()
-    if len(permutasi) != 26 or set(permutasi) != set(alfabet):
-        messagebox.showerror("Kesalahan", "Permutasi harus terdiri dari 26 huruf unik (A-Z).")
-        return None, None
-    enkripsi_map = str.maketrans(alfabet, permutasi)
-    dekripsi_map = str.maketrans(permutasi, alfabet)
-    return enkripsi_map, dekripsi_map
+# === FUNGSI PERMUTASI ===
+def permutasi_menyeluruh(data):
+    return list(itertools.permutations(data))
 
-def enkripsi(teks, enkripsi_map):
-    return teks.upper().translate(enkripsi_map)
+def permutasi_sebagian(data, k):
+    return list(itertools.permutations(data, k))
 
-def dekripsi(teks, dekripsi_map):
-    return teks.upper().translate(dekripsi_map)
+def permutasi_keliling(data):
+    if len(data) <= 1:
+        return [data]
+    pertama = data[0]
+    hasil = []
+    for perm in itertools.permutations(data[1:]):
+        hasil.append([pertama] + list(perm))
+    return hasil
 
-# === FUNGSI STEGANOGRAFI ===
-def sisipkan_pesan(gambar_path, pesan, output_path):
-    img = Image.open(gambar_path).convert('RGB')
-    biner_pesan = ''.join(format(ord(c), '08b') for c in pesan) + '1111111111111110'  # Penanda akhir
-    data = list(img.getdata())
-    if len(biner_pesan) > len(data) * 3:
-        messagebox.showerror("Error", "Pesan terlalu panjang untuk gambar ini.")
-        return
-    idx = 0
-    new_data = []
-    for pixel in data:
-        r, g, b = pixel
-        if idx < len(biner_pesan):
-            r = (r & ~1) | int(biner_pesan[idx]); idx += 1
-        if idx < len(biner_pesan):
-            g = (g & ~1) | int(biner_pesan[idx]); idx += 1
-        if idx < len(biner_pesan):
-            b = (b & ~1) | int(biner_pesan[idx]); idx += 1
-        new_data.append((r, g, b))
-    img.putdata(new_data)
-    img.save(output_path)
-    messagebox.showinfo("Berhasil", f"Pesan berhasil disisipkan ke gambar:\n{output_path}")
+def permutasi_berkelompok(grup):
+    hasil = [[]]
+    for kelompok in grup:
+        hasil_baru = []
+        for hsl in hasil:
+            for perm in itertools.permutations(kelompok):
+                hasil_baru.append(hsl + list(perm))
+        hasil = hasil_baru
+    return hasil
 
-def ekstrak_pesan(gambar_path):
-    img = Image.open(gambar_path)
-    data = list(img.getdata())
-    biner_pesan = ''
-    for pixel in data:
-        for warna in pixel[:3]:
-            biner_pesan += str(warna & 1)
-    byte_list = [biner_pesan[i:i+8] for i in range(0, len(biner_pesan), 8)]
-    pesan = ''
-    for byte in byte_list:
-        if byte == '11111110':  # penanda akhir
-            break
-        pesan += chr(int(byte, 2))
-    messagebox.showinfo("Pesan Tersembunyi", f"Pesan yang diekstrak:\n\n{pesan}")
+# === FUNGSI UTAMA TAMPILAN DAN EKSEKUSI ===
+def tampilkan_hasil(judul, hasil):
+    output_box.config(state='normal')
+    output_box.delete('1.0', tk.END)
+    output_box.insert(tk.END, f"=== {judul} ===\n", "judul")
+    output_box.insert(tk.END, f"Jumlah hasil: {len(hasil)}\n\n", "info")
+    for h in hasil:
+        output_box.insert(tk.END, " ".join(str(x) for x in h) + "\n")
+    output_box.config(state='disabled')
+
+def konfirmasi_lanjut():
+    jawab = messagebox.askyesno("Konfirmasi", "Apakah Anda ingin melanjutkan program?")
+    if not jawab:
+        root.destroy()
+
+def jalankan_permutasi_menyeluruh():
+    data = simpledialog.askstring("Input Data", "Masukkan elemen (pisahkan dengan spasi):")
+    if not data: return
+    data = data.split()
+    hasil = permutasi_menyeluruh(data)
+    tampilkan_hasil("Permutasi Menyeluruh", hasil)
+    konfirmasi_lanjut()
+
+def jalankan_permutasi_sebagian():
+    data = simpledialog.askstring("Input Data", "Masukkan elemen (pisahkan dengan spasi):")
+    if not data: return
+    data = data.split()
+    k = simpledialog.askinteger("Input K", f"Masukkan jumlah elemen yang diambil (1 - {len(data)}):")
+    if not k: return
+    hasil = permutasi_sebagian(data, k)
+    tampilkan_hasil("Permutasi Sebagian", hasil)
+    konfirmasi_lanjut()
+
+def jalankan_permutasi_keliling():
+    data = simpledialog.askstring("Input Data", "Masukkan elemen (pisahkan dengan spasi):")
+    if not data: return
+    data = data.split()
+    hasil = permutasi_keliling(data)
+    tampilkan_hasil("Permutasi Keliling", hasil)
+    konfirmasi_lanjut()
+
+def jalankan_permutasi_berkelompok():
+    jml_grup = simpledialog.askinteger("Input Jumlah Grup", "Masukkan jumlah grup:")
+    if not jml_grup: return
+    grup = []
+    for i in range(jml_grup):
+        anggota = simpledialog.askstring("Input Grup", f"Masukkan anggota grup {i+1} (pisahkan dengan spasi):")
+        if not anggota: return
+        grup.append(anggota.split())
+    hasil = permutasi_berkelompok(grup)
+    tampilkan_hasil("Permutasi Berkelompok", hasil)
+    konfirmasi_lanjut()
 
 # === GUI UTAMA ===
 root = tk.Tk()
-root.title("🔐 Program Kriptografi & Steganografi")
-root.geometry("650x550")
-root.configure(bg="#f7f7f7")
+root.title("💠 Program Permutasi GUI - Praktikum 3")
+root.geometry("700x550")
 root.resizable(False, False)
+root.configure(bg="#f4f6f7")
 
-# === JUDUL ===
-judul = tk.Label(root, 
-    text="PROGRAM KRIPTOGRAFI & STEGANOGRAFI",
-    font=("Helvetica", 16, "bold"),
-    bg="#f7f7f7",
-    fg="#2a2a2a"
-)
-judul.pack(pady=10)
+# === HEADER ===
+header_frame = tk.Frame(root, bg="#3498db")
+header_frame.pack(fill='x')
 
-subjudul = tk.Label(root, 
-    text="Kembangkan agar semua jenis permutasi dapat diinput dari keyboard",
-    font=("Arial", 10),
-    bg="#f7f7f7",
-    fg="#555"
-)
-subjudul.pack(pady=5)
+tk.Label(header_frame, text="PROGRAM PERMUTASI", font=("Helvetica", 16, "bold"), bg="#3498db", fg="white").pack(pady=10)
+tk.Label(header_frame, text="(Menyeluruh, Sebagian, Keliling, Berkelompok)", font=("Helvetica", 11), bg="#3498db", fg="white").pack(pady=(0,10))
 
-# Variabel global
-enkripsi_map = None
-dekripsi_map = None
+# === FRAME TOMBOL ===
+menu_frame = tk.Frame(root, bg="#f4f6f7")
+menu_frame.pack(pady=20)
 
-# === BAGIAN FUNGSI ===
-def atur_permutasi():
-    global enkripsi_map, dekripsi_map
-    perm = simpledialog.askstring(
-        "Input Permutasi",
-        "Masukkan 26 huruf A-Z secara acak (tanpa spasi):"
-    )
-    if not perm:
-        return
-    hasil = buat_peta_permutasi(perm)
-    if hasil[0]:
-        enkripsi_map, dekripsi_map = hasil
-        messagebox.showinfo("Sukses", "Permutasi berhasil disimpan!\nSekarang Anda dapat melakukan enkripsi atau dekripsi.")
+button_style = {"font": ("Arial", 11, "bold"), "width": 25, "height": 2, "bd": 0, "relief": "flat"}
 
-def menu_enkripsi():
-    if not enkripsi_map:
-        messagebox.showwarning("Peringatan", "Masukkan permutasi huruf terlebih dahulu!")
-        return
-    teks = simpledialog.askstring("Enkripsi", "Masukkan teks yang akan dienkripsi:")
-    if teks:
-        hasil = enkripsi(teks, enkripsi_map)
-        messagebox.showinfo("Hasil Enkripsi", f"Ciphertext:\n\n{hasil}")
+def buat_tombol(teks, warna, perintah, baris, kolom):
+    tk.Button(menu_frame, text=teks, bg=warna, fg="white",
+              activebackground="#2c3e50", activeforeground="white",
+              command=perintah, **button_style).grid(row=baris, column=kolom, padx=10, pady=8)
 
-def menu_dekripsi():
-    if not dekripsi_map:
-        messagebox.showwarning("Peringatan", "Masukkan permutasi huruf terlebih dahulu!")
-        return
-    teks = simpledialog.askstring("Dekripsi", "Masukkan ciphertext yang akan didekripsi:")
-    if teks:
-        hasil = dekripsi(teks, dekripsi_map)
-        messagebox.showinfo("Hasil Dekripsi", f"Plaintext:\n\n{hasil}")
+buat_tombol("🔹 Permutasi Menyeluruh", "#27ae60", jalankan_permutasi_menyeluruh, 0, 0)
+buat_tombol("🔸 Permutasi Sebagian", "#2980b9", jalankan_permutasi_sebagian, 0, 1)
+buat_tombol("🔹 Permutasi Keliling", "#e67e22", jalankan_permutasi_keliling, 1, 0)
+buat_tombol("🔸 Permutasi Berkelompok", "#8e44ad", jalankan_permutasi_berkelompok, 1, 1)
 
-def menu_sisipkan_pesan():
-    gambar_path = filedialog.askopenfilename(title="Pilih Gambar", filetypes=[("Image files", "*.png;*.jpg;*.bmp")])
-    if not gambar_path:
-        return
-    pesan = simpledialog.askstring("Pesan", "Masukkan pesan yang akan disembunyikan:")
-    if not pesan:
-        return
-    output_path = filedialog.asksaveasfilename(defaultextension=".png", title="Simpan Gambar Baru", filetypes=[("PNG Image", "*.png")])
-    if output_path:
-        sisipkan_pesan(gambar_path, pesan, output_path)
+# === OUTPUT BOX ===
+output_box = scrolledtext.ScrolledText(root, width=80, height=15, font=("Consolas", 10), wrap='word', bg="#ffffff", fg="#2c3e50")
+output_box.tag_configure("judul", font=("Arial", 11, "bold"), foreground="#2980b9")
+output_box.tag_configure("info", font=("Arial", 10, "italic"), foreground="#16a085")
+output_box.pack(padx=15, pady=15)
+output_box.config(state='disabled')
 
-def menu_ekstrak_pesan():
-    gambar_path = filedialog.askopenfilename(title="Pilih Gambar", filetypes=[("Image files", "*.png;*.jpg;*.bmp")])
-    if gambar_path:
-        ekstrak_pesan(gambar_path)
+# === FOOTER DAN EXIT ===
+footer_frame = tk.Frame(root, bg="#f4f6f7")
+footer_frame.pack(pady=5)
 
-# === TATA LETAK TOMBOL ===
-frame = tk.Frame(root, bg="#f7f7f7")
-frame.pack(pady=20)
+tk.Button(footer_frame, text="❌ Keluar", command=root.destroy, bg="#c0392b", fg="white",
+          font=("Arial", 10, "bold"), width=20, height=2, relief="flat").pack(pady=5)
 
-tombol_style = {"width": 28, "height": 2, "font": ("Arial", 10, "bold")}
-
-tk.Button(frame, text="1️⃣ Atur Permutasi Huruf", command=atur_permutasi, bg="#4CAF50", fg="white", **tombol_style).grid(row=0, column=0, padx=10, pady=8)
-tk.Button(frame, text="2️⃣ Enkripsi Teks", command=menu_enkripsi, bg="#2196F3", fg="white", **tombol_style).grid(row=0, column=1, padx=10, pady=8)
-tk.Button(frame, text="3️⃣ Dekripsi Teks", command=menu_dekripsi, bg="#FF9800", fg="white", **tombol_style).grid(row=1, column=0, padx=10, pady=8)
-tk.Button(frame, text="4️⃣ Sisipkan Pesan ke Gambar", command=menu_sisipkan_pesan, bg="#9C27B0", fg="white", **tombol_style).grid(row=1, column=1, padx=10, pady=8)
-tk.Button(frame, text="5️⃣ Ekstrak Pesan dari Gambar", command=menu_ekstrak_pesan, bg="#795548", fg="white", **tombol_style).grid(row=2, column=0, columnspan=2, pady=8)
-
-# Tombol keluar
-tk.Button(root, text="Keluar", command=root.destroy, bg="red", fg="white", font=("Arial", 10, "bold"), width=20, height=2).pack(pady=10)
-
-# Footer
-footer = tk.Label(root, text="© 2025 | Praktikum Kriptografi & Steganografi - by Setiany Hulu", bg="#f7f7f7", fg="#888", font=("Arial", 9))
-footer.pack(side="bottom", pady=5)
+tk.Label(root, text="© 2025 | Praktikum 3 - Setiany Hulu", bg="#f4f6f7", fg="#7f8c8d", font=("Arial", 9)).pack(side="bottom", pady=5)
 
 root.mainloop()
