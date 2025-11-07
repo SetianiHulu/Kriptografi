@@ -119,7 +119,7 @@ step_text = tk.Text(root, height=10, width=70, font=("Consolas", 9), bg="#F9FAFB
 step_text.pack(pady=5)
 
 # Footer
-footer = tk.Label(root, text="SETIANI❤️", bg="#E9F2FF", fg="#555", font=("Arial", 9))
+footer = tk.Label(root, text="SETIANII❤️", bg="#E9F2FF", fg="#555", font=("Arial", 9))
 footer.pack(pady=5)
 
 if __name__ == "__main__":
