@@ -351,7 +351,7 @@ def run_full_process():
 
 # ---------------- Build Tkinter UI ----------------
 root = tk.Tk()
-root.title("AES Pendidikan — Rapi & Berwarna")
+root.title("KRIPTOGRAFI AES")
 root.geometry("1100x760")
 root.minsize(980, 640)
 
